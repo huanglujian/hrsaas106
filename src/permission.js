@@ -1,0 +1,33 @@
+import router from '@/router' //! 引入路由实例
+import store from '@/store' //! 引入vuex store实例
+import NProgress from 'nprogress' //! 引入一份进度条插件
+import 'nprogress/nprogress.css' //! 引入进度条样式
+
+const whiteList = ['/login', '/404'] //! 定义白名单（不受token权限控制的页面）
+
+//! 路由的前置守卫
+router.beforeEach((to, from, next) => {
+  NProgress.start() //! 开启进度条
+  //! 判断有无token
+  if (store.getters.token) {
+    //! 有token，再判断是否去的是login页面
+    if (to.path === '/login') {
+      next('/') //! 是login就跳转到首页
+    } else {
+      next() //! 不是就跳转到想去的路由
+    }
+  } else {
+    //! 没有token，判断是不是白名单中的
+    if (whiteList.indexOf(to.path) > -1) {
+      next() //! 是就直接跳转
+    } else {
+      next('/login') //! 不是就让它跳回login页登录信息
+    }
+  }
+  NProgress.done() //! 手动强制关闭，解决手动切换地址时，不经过后置守卫，进度条不关闭
+})
+
+//! 后置守卫
+router.afterEach(() => {
+  NProgress.done() //! 关闭进度条
+})
