@@ -1,8 +1,9 @@
 import { getToken, setToken, removeToken } from '@/utils/auth'
-import { login } from '@/api/user'
+import { login,getUserInfo } from '@/api/user'
 
 const state = {
-  token: getToken() //! 设置token初始状态   token持久化 => 放到缓存
+  token: getToken(), //! 设置token初始状态   token持久化 => 放到缓存
+  userInfo: {}  //! 定义一个空的对象，不是null，是因为后面要用到这个对象后面属性， null.属性 这种写法会报错
 }
 const mutations = {
   setToken(state, token) {
@@ -12,6 +13,10 @@ const mutations = {
   removeToken(state) {
     state.token = null //! 删除vuex的token
     removeToken() //! 先清除vuex  再清除缓存 vuex和缓存
+  },
+  setUserInfo(state,userInfo) {
+    // state.userInfo = userInfo
+    state.userInfo = {...userInfo}  //! 用浅拷贝的方式去赋值对象，因为这样数据更新之后，才能触发组件的更新
   }
 }
 
@@ -23,6 +28,11 @@ const actions = {
       context.commit('setToken', result.data.data) //! actions修改state 必须通过mutations
     } */
     context.commit('setToken', result)
+  },
+  async getUserInfo(context) {
+    const result = await getUserInfo()
+    context.commit('setUserInfo',result) //! 将整个的个人信息设置到用户的vuex数据中
+    return result  //! 这里为什么要返回值，为后面埋下伏笔
   }
 }
 
