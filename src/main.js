@@ -15,6 +15,12 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
+import * as directives from '@/directives'
+// console.log(directives) //! 打印的是以 自定义命令为key，的对象
+Object.keys(directives).forEach(key => { //! 遍历所有的导出的指令对象，完成自定义全局注册
+  Vue.directive(key, directives[key])
+})
+
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明

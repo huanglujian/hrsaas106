@@ -6,7 +6,7 @@ import 'nprogress/nprogress.css' //! 引入进度条样式
 const whiteList = ['/login', '/404'] //! 定义白名单（不受token权限控制的页面）
 
 //! 路由的前置守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async(to, from, next) => {
   NProgress.start() //! 开启进度条
   //! 判断有无token
   if (store.getters.token) {
@@ -14,6 +14,9 @@ router.beforeEach((to, from, next) => {
     if (to.path === '/login') {
       next('/') //! 是login就跳转到首页
     } else {
+      if (!store.getters.userId) { //! 如果没有id这个值，才会调用vuex的获取资料的action
+        await store.dispatch('user/getUserInfo') //! 为什么要写await？ 因为向获取完资料再去放行
+      }
       next() //! 不是就跳转到想去的路由
     }
   } else {

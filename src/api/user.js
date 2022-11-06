@@ -17,4 +17,9 @@ export function getUserInfo() {
   })
 }
 
-export function logout() {}
+//! 获取用户的详细信息
+export function getUserDetailById(id) {
+  return request({
+    url: `/sys/user/${id}`
+  })
+}

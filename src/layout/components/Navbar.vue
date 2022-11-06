@@ -14,18 +14,15 @@
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img src="@/assets/common/bigUserHeader.png" class="user-avatar">
-          <span class="name">管理员</span>
+          <img v-imagerror="defaultImg" :src="staffPhoto" class="user-avatar">
+          <span class="name">{{ name }}</span>
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
             <el-dropdown-item> 首页 </el-dropdown-item>
           </router-link>
-          <a
-            target="_blank"
-            href="https://github.com/PanJiaChen/vue-admin-template/"
-          >
+          <a target="_blank" href="git@github.com:huanglujian/hrsaas106.git">
             <el-dropdown-item>项目地址</el-dropdown-item>
           </a>
           <el-dropdown-item divided @click.native="logout">
@@ -38,23 +35,32 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+// import { mapGetters, createNamespacedHelpers } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import Hamburger from '@/components/Hamburger'
+// const { mapActions } = createNamespacedHelpers('user')
 
 export default {
   components: {
     Hamburger
   },
+  data() {
+    return {
+      defaultImg: require('@/assets/common/head.jpg') //!  这儿不能使用路径，因为打包后所有资源和图片都会被copy到一个固定位置，为了防止发生意外，需要使用变量
+    }
+  },
   computed: {
-    ...mapGetters(['sidebar', 'avatar'])
+    ...mapGetters(['sidebar', 'name', 'staffPhoto'])
   },
   methods: {
+    // ...mapActions(['logout']),
+    ...mapMutations(['user/logout']),
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
       await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      this.$router.push('/login')
     }
   }
 }
