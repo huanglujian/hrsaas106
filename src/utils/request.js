@@ -22,6 +22,8 @@ const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, //! 设置axios请求的基础地址
   timeout: 5000 //! 定义请求超过5秒超时
 })
+
+//! 请求拦截器
 service.interceptors.request.use(config => {
   if (store.getters.token) { //! 如果token存在，注入token
     if (IsCheckTimeout()) { //! 为true就表示超时了
@@ -34,8 +36,9 @@ service.interceptors.request.use(config => {
   return config //! 必须返回配置
 }, error => {
   return Promise.reject(error)
-}) //! 请求拦截器
+})
 
+//! 响应拦截器
 service.interceptors.response.use(
   response => {
     const { data: { success, message, data }} = response
@@ -49,7 +52,7 @@ service.interceptors.response.use(
   },
   error => {
     //! error信息里面 response 对象
-    if (error.response && error.response.data && error.response.data.code === 10002) {  //! 当等于10002时，后端就会告诉我token超时了
+    if (error.response && error.response.data && error.response.data.code === 10002) { //! 当等于10002时，后端就会告诉我token超时了
       store.dispatch('user/logout')
       router.push('/login')
     } else {
@@ -57,5 +60,5 @@ service.interceptors.response.use(
     }
     return Promise.reject(error) //! 返回执行错误，让当前的执行链跳出成功，直接进入catch
   }
-) //! 响应拦截器
+)
 export default service
