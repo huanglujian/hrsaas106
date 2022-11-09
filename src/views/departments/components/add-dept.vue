@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dialog
-      title="新增部门"
+      :title="showTitle"
       :visible="showDialog"
       width="30%"
       @close="btnCancel"
@@ -48,7 +48,12 @@
 </template>
 
 <script>
-import { getDepartments, addDepartments } from '@/api/departments'
+import {
+  getDepartments,
+  addDepartments,
+  getDepartDetail,
+  updateDepartments
+} from '@/api/departments'
 import { getEmployeeSimple } from '@/api/employees'
 
 export default {
@@ -69,9 +74,23 @@ export default {
       const { depts } = await getDepartments()
       //! depts 是所有的部门数据
       //! 如何去找技术部所有的节点
-      const isResult = depts
-        .filter((item) => item.pid === this.treeNode.id)
-        .some((item) => item.name === value)
+      let isResult = false
+      //! 有id就是编辑
+      if (this.formData.id) {
+        // 编辑
+        isResult = depts
+          .filter(
+            (item) =>
+              item.pid === this.treeNode.pid && item.id !== this.treeNode.id
+          )
+          .some((item) => item.name === value)
+      } else {
+        // 添加
+        isResult = depts
+          .filter((item) => item.pid === this.treeNode.id)
+          .some((item) => item.name === value)
+      }
+
       isResult
         ? callback(new Error(`同级部门下已经有${value}的部门了`))
         : callback()
@@ -80,7 +99,15 @@ export default {
     const checkCodeResult = async(rule, value, callback) => {
       //! 先获取最新的组织架构数据
       const { depts } = await getDepartments()
-      const isResult = depts.some((item) => item.code === value && value) //! 这里另加一个条件， value不能为空，因为有些部门有可能没有code
+      let isResult = false
+      if (this.formData.id) {
+        // 编辑
+        isResult = depts.some((item) => item.code === value && value && item.id !== this.treeNode.id)
+      } else {
+        // 添加
+        isResult = depts.some((item) => item.code === value && value) //! 这里另加一个条件， value不能为空，因为有些部门有可能没有code
+      }
+
       isResult
         ? callback(new Error(`组织架构中已经有部门使用${value}编码`))
         : callback()
@@ -136,30 +163,47 @@ export default {
       peoples: []
     }
   },
-  mounted() {
-    getEmployeeSimple()
+  computed: {
+    showTitle() {
+      return this.formData.id ? '编辑部门' : '添加子部门'
+    }
   },
   methods: {
     async getEmployeeSimple() {
       this.peoples = await getEmployeeSimple()
     },
     btnOk() {
-      this.$refs.form.validate(async isOk => {
+      this.$refs.form.validate(async(isOk) => {
         //! isOk 为true表示验证通过，可以提交
         if (isOk) {
-          //! 调用新增接口
-          await addDepartments({
-            ...this.formData,
-            pid: this.treeNode.id
-          })
+          if (this.formData.id) {
+            //! 编辑
+            await updateDepartments(this.formData)
+          } else {
+            //! 调用新增接口
+            await addDepartments({
+              ...this.formData,
+              pid: this.treeNode.id
+            })
+          }
           this.$emit('addDepts') //! 告诉父元素重新获取数据
           this.$emit('update:showDialog', false) //! .sync修饰符  触发事件，关闭弹出层
         }
       })
     },
     btnCancel() {
+      //! 重置数据，因为resetFiled只能重置表单上的数据，非表单上的 比如 id就不能重置
+      this.formData = {
+        name: '',
+        code: '',
+        manager: '',
+        introduce: ''
+      }
       this.$refs.form.resetFields() //! 重置了 formData内容 且 重置检验字段
       this.$emit('update:showDialog', false)
+    },
+    async getDepartDetail(id) {
+      this.formData = await getDepartDetail(id) //! props传值是异步的，有什么会接收不到 id值（报错） ，所以不能直接传值 this.treeNode.id
     }
   }
 }

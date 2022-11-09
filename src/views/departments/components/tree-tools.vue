@@ -52,7 +52,7 @@ export default {
         //! 告诉父组件，显示弹层
         this.$emit('addDepts', this.treeNode) //! 传出treeNode ，添加子部门，需要此数据
       } else if (type === 'edit') { //! 修改部门
-        console.log('修改')
+        this.$emit('editDepts', this.treeNode)
       } else { //! 删除部门
         //! 提示框，点击确定就会进入then
         this.$confirm('确定删除该部门?', '提示', {
