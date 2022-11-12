@@ -125,6 +125,9 @@ export default {
       title: ''
     }
   },
+  computed: {
+    ...mapGetters(['companyId'])
+  },
   created() {
     this.getRoleList() //! 获取角色列表
     this.getCompanyInfo()
@@ -190,10 +193,8 @@ export default {
       this.title = '添加'
       this.showDialog = true
     }
-  },
-  computed: {
-    ...mapGetters(['companyId'])
   }
+
 }
 </script>
 

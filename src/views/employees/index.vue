@@ -6,9 +6,9 @@
           <span>共{{ page.total }}条记录</span>
         </template>
         <template #after>
-          <el-button size="small" type="warning">导入</el-button>
-          <el-button size="small" type="danger">导出</el-button>
-          <el-button size="small" type="primary">新增员工</el-button>
+          <el-button size="small" type="warning" @click="$router.push('/import?type=user')">导入</el-button>
+          <el-button size="small" type="danger" @click="exportData">导出</el-button>
+          <el-button size="small" type="primary" @click="showDialog = true">新增员工</el-button>
         </template>
       </PageTools>
       <el-card v-loading="loading">
@@ -33,7 +33,7 @@
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
             <template slot-scope="{ row }">
-              <el-button type="text" size="small">查看</el-button>
+              <el-button type="text" size="small" @click="$router.push(`/employees/detail/${row.id}`)">查看</el-button>
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
@@ -48,13 +48,19 @@
         </el-row>
       </el-card>
     </div>
+    <add-employee :show-dialog.sync="showDialog" />
   </div>
 </template>
 
 <script>
 import { getEmployeeList, delEmployee } from '@/api/employees'
-import EmployeeEnum from '@/api/constant/employees'
+import EmployeeEnum from '@/api/constant/employees' //! 导入枚举
+import addEmployee from './components/add-employee.vue'
+import { formatDate } from '@/filters/index'
 export default {
+  components: {
+    addEmployee
+  },
   data() {
     return {
       loading: false,
@@ -63,7 +69,8 @@ export default {
         page: 1,
         size: 10,
         total: 0
-      }
+      },
+      showDialog: false
     }
   },
   mounted() {
@@ -83,18 +90,59 @@ export default {
     },
     formatEmployment(row, column, cellValue, index) {
       // 要去找 1 对应的值
-      const obj = EmployeeEnum.hireType.find(item => item.id === cellValue)
-      return obj ? obj.value : '未知'
+      // const obj = EmployeeEnum.hireType.find(item => item.id === cellValue)
+      // return obj ? obj.value : '未知'
+      return cellValue === '1' ? '正式工' : '非正式'
     },
     async deleteEmployee(id) {
-      await this.$confirm('确定删除？')
       try {
+        await this.$confirm('确定删除？')
         await delEmployee(id)
         this.getEmployeeList()
         this.$message.success('删除员工成功')
       } catch (error) {
         console.log(error)
       }
+    },
+    //! 导出excel数据函数
+    exportData() {
+      const headers = {
+        '姓名': 'username',
+        '手机号': 'mobile',
+        '入职日期': 'timeOfEntry',
+        '聘用形式': 'formOfEmployment',
+        '转正日期': 'correctionTime',
+        '工号': 'workNumber',
+        '部门': 'departmentName'
+      }
+      //! 懒加载
+      import('@/vendor/Export2Excel').then(async excel => {
+        const { rows } = await getEmployeeList({ page: 1, size: this.page.total }) // 获取所有的员工的信息
+        const data = this.formatJson(headers, rows)
+        const multiHeader = [['姓名', '主要信息', '', '', '', '', '部门']]
+        const merges = ['A1:A2', 'B1:F1', 'G1:G2']
+        excel.export_json_to_excel({
+          header: Object.keys(headers),
+          data,
+          filename: '员工信息表',
+          multiHeader, //! 复杂表头
+          merges //! 合并区域
+        })
+      })
+    },
+    //! 该方法负责将数组转换为二维数组
+    formatJson(headers, rows) {
+      return rows.map(item => {
+        return Object.keys(headers).map(key => {
+          if (headers[key] === 'timeOfEntry' || headers[key] === 'correctionTime') {
+            return formatDate(item[headers[key]])
+          } else if (headers[key] === 'formOfEmployment') {
+            const result = EmployeeEnum.hireType.find(obj => obj.id === item[headers[key]])
+            return result ? result.value : '未知'
+          }
+          return item[headers[key]]
+        })
+      })
     }
   }
 }
