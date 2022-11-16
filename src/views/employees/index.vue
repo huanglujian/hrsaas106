@@ -17,6 +17,17 @@
           <!-- sortable 用来给表格添加排序的功能 -->
           <el-table-column label="序号" sortable="" type="index" prop="id" />
           <el-table-column label="姓名" sortable="" prop="username" />
+          <el-table-column label="头像" align="center">
+            <template v-slot="{ row }">
+              <img
+                v-imagerror="require('@/assets/common/head.jpg')"
+                alt=""
+                :src="row.staffPhoto"
+                style="border-radius: 50%; width: 100px; height: 100px; padding: 10px"
+                @click="showQrCode(row.staffPhoto)"
+              >
+            </template>
+          </el-table-column>
           <el-table-column label="工号" sortable="" prop="workNumber" />
           <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" :formatter="formatEmployment" />
           <el-table-column label="部门" sortable="" prop="departmentName" />
@@ -49,6 +60,12 @@
       </el-card>
     </div>
     <add-employee :show-dialog.sync="showDialog" />
+    <!-- 二维码弹窗 -->
+    <el-dialog title="二维码" :visible.sync="showCodeDialog">
+      <el-row type="flex" justify="center">
+        <canvas ref="myCanvas" />
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
@@ -57,6 +74,7 @@ import { getEmployeeList, delEmployee } from '@/api/employees'
 import EmployeeEnum from '@/api/constant/employees' //! 导入枚举
 import addEmployee from './components/add-employee.vue'
 import { formatDate } from '@/filters/index'
+import QrCode from 'qrcode'
 export default {
   components: {
     addEmployee
@@ -70,7 +88,8 @@ export default {
         size: 10,
         total: 0
       },
-      showDialog: false
+      showDialog: false,
+      showCodeDialog: false
     }
   },
   mounted() {
@@ -143,6 +162,20 @@ export default {
           return item[headers[key]]
         })
       })
+    },
+    showQrCode(url) {
+      console.log(url)
+      if (url) { //! url存在的情况下，才出弹层
+        // debugger
+        this.showCodeDialog = true //! 数据更新了，但是我的弹层会立刻出现吗？页面渲染是异步的！！
+        //! Vue.$nextTick() 可以在上一次数据更新完毕后，页面渲染完毕之后
+        this.$nextTick(() => {
+          //! 此时已经确定有ref对象了
+          QrCode.toCanvas(this.$refs.myCanvas, url)
+        })
+      } else {
+        this.$message.warning('该用户还没有上传头像')
+      }
     }
   }
 }

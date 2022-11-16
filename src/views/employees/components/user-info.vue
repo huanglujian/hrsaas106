@@ -58,7 +58,7 @@
         <el-col :span="12">
           <el-form-item label="员工头像">
             <!-- 放置上传图片 -->
-
+            <image-upload ref="staffPhoto" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -87,9 +87,9 @@
         </el-form-item>
         <!-- 个人头像 -->
         <!-- 员工照片 -->
-
         <el-form-item label="员工照片">
           <!-- 放置上传图片 -->
+          <image-upload ref="mystaffPhoto" />
         </el-form-item>
         <el-form-item label="国家/地区">
           <el-select v-model="formData.nationalArea" class="inputW2">
@@ -356,24 +356,48 @@ export default {
     }
   },
   mounted() {
-    this.getPersonalDetail()
     this.getUserDetailById()
+    this.getPersonalDetail()
   },
   methods: {
-    //! 下面
-    async getPersonalDetail() {
-      this.formData = await getPersonalDetail(this.userId)
-    },
-    async savePersonal() {
-      await updatePersonal({ ...this.formData, id: this.userId })
-      this.$message.success('成功')
-    },
     //! 上面
     async getUserDetailById() {
       this.userInfo = await getUserDetailById(this.userId)
+      if (this.userInfo.staffPhoto && this.userInfo.staffPhoto.trim()) { //! 看看用户有没有且是不是空格字符
+        //!  这里赋值，同时需要给赋值的地址一个标记 upload: true ， 表示图片已经上传成功了
+        this.$refs.staffPhoto.fileList = [{ url: this.userInfo.staffPhoto, upload: true }]
+      }
     },
     async saveUser() {
-      this.formData = await saveUserDetailById(this.userInfo)
+      const fileList = this.$refs.staffPhoto.fileList // 读取上传组件的数据
+      console.log(fileList)
+      if (fileList.some(item => !item.upload)) { // 先去看看fileList中upload是不是true
+      //  如果此时去找 upload为false的图片 找到了说明 有图片还没有上传完成
+        this.$message.warning('你当前还有图片没有上传')
+        return
+      }
+      this.formData = await saveUserDetailById({ ...this.userInfo, staffPhoto: fileList && fileList.length ? fileList[0].url : ' ' })
+      this.$message.success('成功')
+    },
+    //! 下面
+    async getPersonalDetail() {
+      this.formData = await getPersonalDetail(this.userId)
+      if (this.formData.staffPhoto && this.formData.staffPhoto.trim()) { //! 看看用户有没有且是不是空格字符
+        //!  这里赋值，同时需要给赋值的地址一个标记 upload: true ， 表示图片已经上传成功了
+        this.$refs.mystaffPhoto.fileList = [{ url: this.formData.staffPhoto, upload: true }]
+      }
+    },
+    async savePersonal() {
+      const fileList = this.$refs.mystaffPhoto.fileList // 读取上传组件的数据
+      if (fileList.some(item => !item.upload)) { // 先去看看fileList中upload是不是true
+      //  如果此时去找 upload为false的图片 找到了说明 有图片还没有上传完成
+        this.$message.warning('你当前还有图片没有上传')
+        return
+      }
+      // 通过合并 得到一个新对象
+      // 没有图片也可以上传，另外由于接口问题， ' ' 中间必须要空格
+      await updatePersonal({ ...this.formData, staffPhoto: fileList && fileList.length ? fileList[0].url : ' ' })
+      this.$message.success('成功')
     }
   }
 }

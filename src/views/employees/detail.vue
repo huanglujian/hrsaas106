@@ -17,9 +17,23 @@
             </el-form>
           </el-tab-pane>
           <el-tab-pane label="配置管理" name="second">
+            <el-row type="flex" justify="end">
+              <el-tooltip content="打印个人基本信息">
+                <router-link :to="`/employees/print/${userId}?type=personal`">
+                  <i class="el-icon-printer" />
+                </router-link>
+              </el-tooltip>
+            </el-row>
             <UserInfo />
           </el-tab-pane>
           <el-tab-pane label="角色管理" name="third">
+            <el-row type="flex" justify="end">
+              <el-tooltip content="打印岗位信息">
+                <router-link :to="`/employees/print/${userId}?type=job`">
+                  <i class="el-icon-printer" />
+                </router-link>
+              </el-tooltip>
+            </el-row>
             <JobInfo />
           </el-tab-pane>
         </el-tabs>
@@ -50,6 +64,7 @@ export default {
         password2: [{ required: true, message: '密码不能为空', trigger: 'blur' },
           { min: 6, max: 9, message: '密码长度6-9位', trigger: 'blur' }]
       }
+
     }
   },
   mounted() {
