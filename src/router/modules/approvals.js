@@ -9,7 +9,7 @@ export default {
     path: '', //! 这里当二级路由的path什么都不写的时候，表示该路由为当前二级路由的默认路由
     component: () => import('@/views/approvals'),
     meta: { //! 路由元信息，其实就是存储数据的对象，我们可以在这里放置一些信息
-      title: '权限管理', //!  meta里面的属性名可以随意的定义，这里使用 title 是因为左侧菜单行把title属性作为菜单栏名称
+      title: '审批', //!  meta里面的属性名可以随意的定义，这里使用 title 是因为左侧菜单行把title属性作为菜单栏名称
       icon: 'tree-table'
     }
   }]

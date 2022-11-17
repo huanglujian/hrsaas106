@@ -1,5 +1,6 @@
 import { getToken, setToken, removeToken, setTimeStamp } from '@/utils/auth'
 import { login, getUserInfo, getUserDetailById } from '@/api/user'
+import { resetRouter } from '@/router/index'
 
 const state = {
   token: getToken(), //! 设置token初始状态   token持久化 => 放到缓存
@@ -40,8 +41,14 @@ const actions = {
   },
   //! 退出的action
   logout(context) {
-    context.commit('removeToken') //!  不仅仅删除了vuex中的，还删除了缓存中的
-    context.commit('removeUserInfo')
+    context.commit('removeToken')
+    context.commit('removeUserInfo') //!  不仅仅删除了vuex中的，还删除了缓存中的
+    //! 重置路由
+    resetRouter()
+    // 不加命名空间的情况下，所有的mutations和actions都是挂在全局上的
+    // 子模块调用子模块的action  默认情况下 子模块的context是子模块的
+    context.commit('permission/setRoutes', [], { root: true })
+    //! 子模块调用子模块的action 可以 将 commit的第三个参数 设置成  { root: true } 就表示当前的context不是子模块了 而是父模块
   }
 }
 

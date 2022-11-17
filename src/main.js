@@ -32,6 +32,10 @@ Object.keys(filters).forEach(key => {
 import Component from '@/components'
 Vue.use(Component) //! 注册所有的全局组件
 
+//! 定义公共的 mixin
+import CheckPermission from '@/mixin/checkPermission.js'
+Vue.mixin(CheckPermission)
+
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明
