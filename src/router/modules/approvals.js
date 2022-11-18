@@ -1,18 +1,72 @@
-//! 每个子模块其实都是外层时layout，组件位于layout的二级路由里面
 import Layout from '@/layout'
 
 export default {
   path: '/approvals',
-  name: 'approvals',
   component: Layout,
-  children: [{
-    path: '', //! 这里当二级路由的path什么都不写的时候，表示该路由为当前二级路由的默认路由
-    component: () => import('@/views/approvals'),
-    meta: { //! 路由元信息，其实就是存储数据的对象，我们可以在这里放置一些信息
-      title: '审批', //!  meta里面的属性名可以随意的定义，这里使用 title 是因为左侧菜单行把title属性作为菜单栏名称
-      icon: 'tree-table'
+  name: 'approvals',
+  children: [
+    {
+      path: '',
+      component: () => import('@/views/approvals'),
+      name: 'approvals',
+      meta: {
+        title: '审批',
+        icon: 'tree-table'
+      }
+    },
+    {
+      path: 'salaryApproval/:id',
+      component: () => import('@/views/approvals/salary'),
+      name: 'salaryApproval',
+      hidden: true,
+      meta: {
+        title: '工资审核',
+        icon: 'approval', noCache: true }
+    },
+    {
+      path: 'enterApproval/:id',
+      component: () => import('@/views/approvals/enter'),
+      name: 'enterApproval',
+      hidden: true,
+      meta: {
+        title: '入职审核',
+        icon: 'approval', noCache: true }
+    },
+    {
+      path: 'leaveApproval/:id',
+      component: () => import('@/views/approvals/leave'),
+      name: 'leaveApproval',
+      hidden: true,
+      meta: {
+        title: '申请请假',
+        icon: 'approval', noCache: true }
+    },
+    {
+      path: 'quitApproval/:id',
+      component: () => import('@/views/approvals/quit'),
+      name: 'quitApproval',
+      hidden: true,
+      meta: {
+        title: '申请离职',
+        icon: 'approval', noCache: true }
+    },
+    {
+      path: 'overtimeApproval/:id',
+      component: () => import('@/views/approvals/overtime'),
+      name: 'overtimeApproval',
+      hidden: true,
+      meta: {
+        title: '加班申请',
+        icon: 'approval', noCache: true }
+    },
+    {
+      path: 'securitySetting',
+      component: () => import('@/views/approvals/security'),
+      name: 'securitySetting',
+      hidden: true,
+      meta: {
+        title: '设置',
+        icon: 'approval', noCache: true }
     }
-  }]
+  ]
 }
-
-//!  当你访问的地址是 /salarys 的时候，layout组件会显示，此时，你的二级路由的默认组件也会显示
