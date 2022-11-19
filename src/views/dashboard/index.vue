@@ -72,10 +72,10 @@
             <span>流程申请</span>
           </div>
           <div class="sideNav">
-            <el-button class="sideBtn">加班离职</el-button>
+            <el-button class="sideBtn" @click="showDialog = true">加班离职</el-button>
             <el-button class="sideBtn">请假调休</el-button>
-            <el-button class="sideBtn">审批列表</el-button>
-            <el-button class="sideBtn">我的信息</el-button>
+            <el-button class="sideBtn" @click="$router.push('/users/approvals')">审批列表</el-button>
+            <el-button class="sideBtn" @click="$router.push('/users/info')">我的信息</el-button>
           </div>
         </el-card>
 
@@ -117,14 +117,49 @@
         </el-card>
       </el-col>
     </el-row>
+    <!-- 弹出层 -->
+    <el-dialog :visible.sync="showDialog" title="离职申请" @close="btnCancel">
+      <el-form
+        ref="ruleForm"
+        :model="ruleForm"
+        status-icon
+        label-width="110px"
+        :rules="rules"
+      >
+        <el-form-item label="离职时间" prop="exceptTime">
+          <el-date-picker
+            v-model="ruleForm.exceptTime"
+            type="datetime"
+            placeholder="请选择离职时间"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="离职原因" prop="reason">
+          <el-input
+            v-model="ruleForm.reason"
+            type="textarea"
+            :autosize="{ minRows: 3, maxRows: 8}"
+            style="width: 70%;"
+            placeholder="请输入内容"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button size="small" type="primary" @click="btnOk">确定</el-button>
+        <el-button size="small" @click="btnCancel">取消</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+//! 全屏 document.documentElement.requestFullscreen
+//! 退出全屏 document.exitFullscreen()
 import { mapGetters, createNamespacedHelpers } from 'vuex'
 import WorkCalendar from './components/work-calendar.vue'
 import radar from './components/radar.vue'
 const { mapState } = createNamespacedHelpers('user')
+import { startProcess } from '@/api/approvals'
 
 export default {
   name: 'Dashboard',
@@ -134,7 +169,19 @@ export default {
   },
   data() {
     return {
-      defaultImg: require('@/assets/common/head.jpg')
+      defaultImg: require('@/assets/common/head.jpg'),
+      showDialog: false,
+      ruleForm: {
+        exceptTime: '',
+        reason: '',
+        //! 这俩个值视频说是就这样
+        processKey: 'process_dimission', // 特定的审批
+        processName: '离职'
+      },
+      rules: {
+        exceptTime: [{ required: true, message: '离职时间不能为空' }],
+        reason: [{ required: true, message: '离职原因不能为空' }]
+      }
     }
   },
   computed: {
@@ -142,6 +189,29 @@ export default {
       'name', 'staffPhoto'
     ]),
     ...mapState(['userInfo'])
+  },
+  methods: {
+    btnCancel() {
+      this.ruleForm = {
+        exceptTime: '',
+        reason: '',
+        processKey: 'process_dimission', // 特定的审批
+        processName: '离职'
+      }
+      this.$refs.ruleForm.resetFields()
+      this.showDialog = false
+    },
+    async btnOk() {
+      try {
+        await this.$refs.ruleForm.validate()
+        const data = { ...this.ruleForm, userId: this.userInfo.userId }
+        await startProcess(data)
+        this.$message.success('提交流程成功')
+        this.btnCancel()
+      } catch (error) {
+        console.log(error)
+      }
+    }
   }
 
 }

@@ -4,7 +4,7 @@ import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
-import locale from 'element-ui/lib/locale/lang/en' // lang i18n
+// import locale from 'element-ui/lib/locale/lang/en' // lang i18n
 
 import '@/styles/index.scss' // global css
 
@@ -36,8 +36,22 @@ Vue.use(Component) //! 注册所有的全局组件
 import CheckPermission from '@/mixin/checkPermission.js'
 Vue.mixin(CheckPermission)
 
+import i18n from '@/lang/index.js'
+Vue.use(ElementUI, {
+  i18n: (key, value) => i18n.t(key, value)
+})
+/* Vue.use(ElementUI, {
+  i18n: function(path, options) {
+    const value = i18n.t(path, options)
+    if (value !== null && value !== undefined) {
+      return value
+    }
+    return ''
+  }
+}) */
+
 // set ElementUI lang to EN
-Vue.use(ElementUI, { locale })
+// Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明
 // Vue.use(ElementUI)
 
@@ -47,5 +61,6 @@ new Vue({
   el: '#app',
   router,
   store,
+  i18n,
   render: (h) => h(App)
 })
