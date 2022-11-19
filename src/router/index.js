@@ -92,6 +92,8 @@ export const asyncRoutes = [
 ]
 
 const createRouter = () => new Router({
+  mode: 'history', //! 改为 history 的路由模式
+  base: 'hr', //! 配置项目的基础地址
   scrollBehavior: () => ({ y: 0 }),
   routes: [...constantRoutes]
 })

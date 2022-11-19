@@ -15,6 +15,31 @@ const name = defaultSettings.title || 'vue Admin Template' // page title
 // port = 9528 npm run dev OR npm run dev --port = 9528
 const port = process.env.port || process.env.npm_config_port || 9528 // dev port
 
+//! 判断环境（生产还是开发）
+const isProd = process.env.NODE_ENV === 'production'
+let cdn = { css: [], js: [] }
+let externals = {}
+if (isProd) {
+  //! 如果是生产环境 就排除打包 否则不排除
+  externals = {
+    //! key(包名) / value(这个值 是 需要在CDN中获取js, 相当于 获取的js中 的该包的全局的对象的名字)
+    'vue': 'Vue', //! 后面的名字不能随便起 应该是 js中的全局对象名
+    'element-ui': 'ELEMENT', //! 都是js中全局定义的
+    'xlsx': 'XLSX' //! 都是js中全局定义的
+  }
+  cdn = {
+    css: [
+      'https://unpkg.com/element-ui/lib/theme-chalk/index.css' // 提前引入elementUI样式
+    ], // 放置css文件目录
+    js: [
+      'https://unpkg.com/vue/dist/vue.js', // vuejs
+      'https://unpkg.com/element-ui/lib/index.js', // element
+      'https://cdn.jsdelivr.net/npm/xlsx@0.16.6/dist/xlsx.full.min.js', // xlsx 相关
+      'https://cdn.jsdelivr.net/npm/xlsx@0.16.6/dist/jszip.min.js' // xlsx 相关
+    ] // 放置js文件目录
+  }
+}
+
 // All configuration item explanations can be find in https://cli.vuejs.org/config/
 module.exports = {
   /**
@@ -53,7 +78,9 @@ module.exports = {
       alias: {
         '@': resolve('src')
       }
-    }
+    },
+    //! 把功能性插件放在CDN服务器上
+    externals: externals
   },
   chainWebpack(config) {
     // it can improve the speed of the first screen, it is recommended to turn on preload
@@ -66,6 +93,13 @@ module.exports = {
         include: 'initial'
       }
     ])
+
+    //! CDN
+    // 这行代码会在执行打包的时候执行
+    config.plugin('html').tap(args => { // args 是注入html模板的一个变量
+      args[0].cdn = cdn
+      return args
+    })
 
     // when there are many pages, it will cause too many meaningless requests
     config.plugins.delete('prefetch')
